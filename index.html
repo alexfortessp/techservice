@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TechService — Ordens de Serviço</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+:root {
+  --fundo: #eef1f4;
+  --papel: #ffffff;
+  --tinta: #18222d;
+  --tinta-2: #4d5b69;
+  --linha: #cfd7df;
+  --aco: #1d5fa8;
+  --aco-escuro: #154a85;
+  --sinal: #e8a317;
+  --perigo: #b42318;
+  --ok: #1f7a4d;
+  --raio: 6px;
+  font-family: 'IBM Plex Sans', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: var(--tinta);
+  background: var(--fundo);
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-size: 15px; line-height: 1.5; }
+a { color: var(--aco); }
+h1 { font-size: 1.6rem; line-height: 1.2; margin: 0 0 .4rem; font-weight: 700; }
+h2 { font-size: 1.05rem; margin: 0 0 .6rem; font-weight: 600; }
+.sub { color: var(--tinta-2); margin: 0 0 1.2rem; }
+.mudo { color: var(--tinta-2); }
+.nota { color: var(--tinta-2); font-size: .9rem; margin: .6rem 0 0; }
+code { background: #e3e8ed; padding: 0 .3em; border-radius: 3px; }
+
+/* topo */
+.topo { display: flex; align-items: center; gap: 1.5rem; background: var(--tinta); color: #fff; padding: 0 1.5rem; min-height: 56px; flex-wrap: wrap; }
+.marca { display: flex; align-items: center; gap: .55rem; color: #fff; text-decoration: none; font-weight: 700; font-size: 1.1rem; }
+.marca-icone { width: 18px; height: 18px; border: 3px solid var(--sinal); border-radius: 50%; position: relative; }
+.marca-icone::after { content: ''; position: absolute; width: 4px; height: 9px; background: var(--sinal); right: -6px; bottom: -8px; transform: rotate(-45deg); border-radius: 2px; }
+.menu { display: flex; gap: .2rem; flex: 1; flex-wrap: wrap; }
+.menu a { color: #c9d3dd; text-decoration: none; padding: 1rem .75rem; font-size: .85rem; font-weight: 500; border-bottom: 3px solid transparent; }
+.menu a:hover { color: #fff; }
+.menu a.ativo { color: #fff; border-bottom-color: var(--sinal); }
+.quem { display: flex; align-items: center; gap: .6rem; font-size: .9rem; }
+.quem small { background: #2c3a48; padding: .1rem .5rem; border-radius: 10px; color: #dfe6ec; }
+.quem .btn-link { color: #c9d3dd; }
+
+.conteudo { max-width: 1120px; margin: 0 auto; padding: 1.8rem 1.5rem 3rem; }
+.trilha { font-size: .85rem; color: var(--tinta-2); margin: 0 0 .4rem; }
+.cabeca { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.cabeca h1, .cabeca h2 { margin: 0; }
+.secao { margin-top: 2rem; }
+
+/* cartões e formulários */
+.cartao { background: var(--papel); border: 1px solid var(--linha); border-radius: var(--raio); padding: 1.2rem; margin-bottom: 1rem; }
+.cartao.destaque { border-left: 4px solid var(--sinal); }
+label { display: flex; flex-direction: column; gap: .3rem; font-size: .85rem; font-weight: 500; color: var(--tinta-2); margin-bottom: .9rem; }
+input, select, textarea { font: inherit; color: var(--tinta); padding: .55rem .65rem; border: 1px solid var(--linha); border-radius: 4px; background: #fff; width: 100%; }
+textarea { resize: vertical; }
+input:focus, select:focus, textarea:focus, .btn:focus-visible, a:focus-visible, .btn-link:focus-visible { outline: 3px solid rgba(29, 95, 168, .35); outline-offset: 1px; border-color: var(--aco); }
+.invalido { border-color: var(--perigo) !important; background: #fff5f4; }
+fieldset { border: 0; border-top: 1px solid var(--linha); padding: 1rem 0 0; margin: 0 0 .6rem; }
+fieldset:disabled { opacity: .5; }
+legend { font-weight: 600; padding-right: .6rem; }
+.grade2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem; }
+.grade3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0 1rem; }
+.grade4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0 1rem; }
+.linha { display: flex; gap: .8rem; align-items: flex-end; flex-wrap: wrap; }
+.linha label { margin-bottom: .9rem; }
+.linha .btn { margin-bottom: .9rem; }
+.cresce { flex: 1; min-width: 220px; }
+.curto { width: 70px; }
+.medio { width: 130px; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; font: inherit; font-size: .85rem; font-weight: 600; padding: .55rem 1rem; border-radius: 4px; border: 1px solid var(--linha); background: #fff; color: var(--tinta); cursor: pointer; text-decoration: none; letter-spacing: .01em; }
+.btn:hover { border-color: var(--aco); color: var(--aco); }
+.btn.primario { background: var(--aco); border-color: var(--aco); color: #fff; }
+.btn.primario:hover { background: var(--aco-escuro); color: #fff; }
+.btn.perigo { color: var(--perigo); border-color: #e6b3ae; }
+.btn.perigo:hover { background: var(--perigo); color: #fff; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.largo { width: 100%; padding: .7rem; }
+.btn-link { background: none; border: 0; color: var(--aco); font: inherit; cursor: pointer; padding: .2rem; text-decoration: underline; }
+.acoes { display: flex; gap: .6rem; flex-wrap: wrap; margin: .4rem 0 .8rem; }
+
+/* mensagens */
+.alerta { padding: .7rem .9rem; border-radius: 4px; margin: 0 0 1rem; font-weight: 500; border-left: 4px solid; }
+.alerta.ok { background: #e7f5ee; border-color: var(--ok); color: #135236; }
+.alerta.erro { background: #fdecea; border-color: var(--perigo); color: #7a1a12; }
+.alerta.info { background: #e9f0f8; border-color: var(--aco); color: #183f6b; }
+
+/* tabelas */
+.tabela-rolagem { overflow-x: auto; background: var(--papel); border: 1px solid var(--linha); border-radius: var(--raio); }
+table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+th, td { text-align: left; padding: .6rem .75rem; border-bottom: 1px solid #e3e8ed; vertical-align: middle; }
+th { background: #f6f8fa; font-weight: 600; color: var(--tinta-2); font-size: .8rem; }
+tbody tr:last-child td { border-bottom: 0; }
+tr.clicavel { cursor: pointer; }
+tr.clicavel:hover { background: #f4f8fc; }
+tfoot td { font-weight: 700; border-top: 2px solid var(--linha); }
+table.compacta { font-size: .85rem; border: 1px solid #e3e8ed; }
+table.itens input { padding: .4rem .5rem; }
+table.banco td { font-family: Consolas, 'Courier New', monospace; font-size: .8rem; white-space: nowrap; }
+.busca { display: flex; align-items: flex-end; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.busca label { margin: 0; min-width: 280px; }
+.total { color: var(--tinta-2); font-size: .9rem; padding-bottom: .5rem; }
+
+/* status */
+.status { display: inline-block; padding: .15rem .6rem; border-radius: 12px; font-size: .78rem; font-weight: 600; white-space: nowrap; border: 1px solid; }
+.st-aberta { background: #e9f0f8; color: #1d5fa8; border-color: #b9cfe8; }
+.st-aguardando-aprovacao { background: #fff4dc; color: #8a5a00; border-color: #f0d18a; }
+.st-aprovado { background: #e4f4f1; color: #116356; border-color: #a9dbd1; }
+.st-recusado { background: #fdecea; color: #a12117; border-color: #f0b8b2; }
+.st-em-reparo { background: #efe9fb; color: #5b3aa8; border-color: #cfc0ef; }
+.st-concluida { background: #e7f5ee; color: #1f7a4d; border-color: #b0dcc4; }
+.st-entregue { background: #eceff2; color: #3a4754; border-color: #c8d0d8; }
+
+/* painel: esteira de etapas */
+.esteira { display: grid; grid-template-columns: repeat(7, 1fr); margin: 0 0 1.5rem; background: var(--papel); border: 1px solid var(--linha); border-radius: var(--raio); overflow: hidden; }
+.etapa { display: flex; flex-direction: column; padding: 1rem .9rem; text-decoration: none; color: var(--tinta); border-right: 1px solid var(--linha); border-top: 5px solid; position: relative; }
+.etapa:last-child { border-right: 0; }
+.etapa strong { font-size: 2rem; line-height: 1.1; }
+.etapa span { font-size: .8rem; color: var(--tinta-2); }
+.etapa:hover { background: #f6f8fa; }
+.etapa.st-aberta { border-top-color: #1d5fa8; }
+.etapa.st-aguardando-aprovacao { border-top-color: #e8a317; }
+.etapa.st-aprovado { border-top-color: #1b8c79; }
+.etapa.st-em-reparo { border-top-color: #6c4bc0; }
+.etapa.st-concluida { border-top-color: #1f7a4d; }
+.etapa.st-entregue { border-top-color: #5f6e7c; }
+.etapa.st-recusado { border-top-color: #b42318; }
+.etapa { background: #fff; color: var(--tinta); border-left: 0; border-bottom: 0; }
+
+/* detalhes da OS */
+.detalhes { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 1.2rem; align-items: start; }
+.ficha { background: var(--papel); border: 1px solid var(--linha); border-radius: var(--raio); padding: 1.2rem; }
+.ficha dl { display: grid; grid-template-columns: 160px 1fr; gap: .7rem 1rem; margin: 0 0 1.5rem; }
+.ficha dt { font-size: .82rem; color: var(--tinta-2); font-weight: 600; }
+.ficha dd { margin: 0; }
+.historico { list-style: none; padding: 0; margin: 0; border-left: 2px solid var(--linha); }
+.historico li { display: flex; gap: .7rem; align-items: center; padding: .35rem 0 .35rem .9rem; position: relative; font-size: .85rem; flex-wrap: wrap; }
+.historico li::before { content: ''; position: absolute; left: -6px; width: 10px; height: 10px; border-radius: 50%; background: var(--papel); border: 2px solid var(--aco); }
+.historico span { color: var(--tinta-2); }
+.lado .cartao h2 { font-size: .95rem; }
+.selecionado { display: flex; justify-content: space-between; align-items: center; background: #f6f8fa; border: 1px solid var(--linha); border-radius: 4px; padding: .7rem .9rem; margin-bottom: .9rem; }
+.selecionado div { display: flex; flex-direction: column; }
+.selecionado span { font-size: .85rem; color: var(--tinta-2); }
+.escolha { list-style: none; padding: 0; margin: 0 0 1rem; }
+.resumo { color: var(--tinta-2); }
+
+/* banco */
+.abas { display: flex; gap: .3rem; flex-wrap: wrap; margin-bottom: .8rem; }
+.abas a { padding: .45rem .8rem; border: 1px solid var(--linha); border-radius: 4px; background: #fff; text-decoration: none; color: var(--tinta); font-size: .85rem; font-family: Consolas, monospace; }
+.abas a.ativo { background: var(--tinta); color: #fff; border-color: var(--tinta); }
+.abas small { opacity: .7; }
+pre.sql { background: var(--tinta); color: #e8eef3; padding: .7rem 1rem; border-radius: 4px; font-size: .85rem; overflow-x: auto; }
+.bruto { margin: 1rem 0; }
+.bruto pre { background: #fff; border: 1px solid var(--linha); padding: 1rem; max-height: 360px; overflow: auto; font-size: .8rem; }
+
+/* login */
+.login { min-height: 100vh; display: grid; place-items: center; padding: 1.5rem; background: linear-gradient(180deg, var(--tinta) 0 42%, var(--fundo) 42%); }
+.login-caixa { width: 100%; max-width: 380px; background: var(--papel); border-radius: var(--raio); padding: 2rem; border: 1px solid var(--linha); }
+.login-marca { display: flex; align-items: center; gap: .6rem; font-size: 1.5rem; font-weight: 700; }
+.login-sub { color: var(--tinta-2); margin: .2rem 0 1.5rem; }
+.dica { margin-top: 1.2rem; font-size: .82rem; color: var(--tinta-2); }
+.dica summary { cursor: pointer; }
+
+@media (max-width: 860px) {
+  .detalhes, .grade2, .grade3, .grade4 { grid-template-columns: 1fr; }
+  .esteira { grid-template-columns: repeat(2, 1fr); }
+  .etapa { border-bottom: 1px solid var(--linha); }
+  .ficha dl { grid-template-columns: 1fr; gap: .2rem; }
+  .ficha dd { margin-bottom: .6rem; }
+  .menu a { padding: .6rem .5rem; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+</style>
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+/* TechService — camada de persistência.
+   Os dados ficam gravados no armazenamento local do navegador (localStorage),
+   organizados em tabelas: usuarios, clientes, equipamentos e ordens. */
+const DB_KEY = 'techservice_db';
+const SESSAO_KEY = 'techservice_sessao';
+
+function dadosIniciais() {
+  return {
+    usuarios: [
+      { id: 1, nome: 'Ana Lima', email: 'atendente@techservice.com', senha: 'Teste@123', perfil: 'Atendente' },
+      { id: 2, nome: 'Carlos Souza', email: 'tecnico@techservice.com', senha: 'Teste@123', perfil: 'Técnico' },
+      { id: 3, nome: 'Administrador', email: 'admin@techservice.com', senha: 'Teste@123', perfil: 'Administrador' }
+    ],
+    clientes: [
+      { id: 1, nome: 'Maria Oliveira', cpf: '123.456.789-09', telefone: '(11) 98888-7777', email: 'maria@email.com', criadoEm: new Date().toISOString() }
+    ],
+    equipamentos: [
+      { id: 1, clienteId: 1, tipo: 'Notebook', marca: 'Dell', modelo: 'Inspiron 15', serie: 'ABC12345', criadoEm: new Date().toISOString() }
+    ],
+    ordens: [],
+    seq: { cliente: 2, equipamento: 2, ordem: 1 }
+  };
+}
+
+const DB = {
+  carregar() {
+    try {
+      const bruto = localStorage.getItem(DB_KEY);
+      if (bruto) return JSON.parse(bruto);
+    } catch (e) { /* dados corrompidos: recria */ }
+    const novo = dadosIniciais();
+    this.gravar(novo);
+    return novo;
+  },
+  gravar(dados) {
+    localStorage.setItem(DB_KEY, JSON.stringify(dados));
+  },
+  restaurar() {
+    const novo = dadosIniciais();
+    this.gravar(novo);
+    return novo;
+  },
+  sessao() {
+    try { return JSON.parse(localStorage.getItem(SESSAO_KEY)); } catch (e) { return null; }
+  },
+  entrar(usuarioId) { localStorage.setItem(SESSAO_KEY, JSON.stringify({ usuarioId, desde: new Date().toISOString() })); },
+  sair() { localStorage.removeItem(SESSAO_KEY); }
+};
+
+/* TechService — aplicação (interface + regras de negócio). */
+let db = DB.carregar();
+let aviso = null;          // mensagem exibida na próxima tela
+let novaOS = null;         // estado da tela NOVA OS
+let orc = null;            // estado da tela ORÇAMENTO
+let painelAberto = null;   // painel de confirmação aberto em DETALHES DA OS
+
+const TODOS = ['Atendente', 'Técnico', 'Administrador'];
+const BALCAO = ['Atendente', 'Administrador'];
+
+/* ---------- utilitários ---------- */
+const $ = (sel) => document.querySelector(sel);
+const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const digitos = (t) => String(t || '').replace(/\D/g, '');
+const agora = () => new Date().toISOString();
+const dataBR = (iso) => iso ? new Date(iso).toLocaleDateString('pt-BR') : '';
+const dataHoraBR = (iso) => iso ? new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '';
+const moeda = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+function numero(texto) {
+  let t = String(texto ?? '').trim().replace(/[R$\s]/g, '');
+  if (t.includes(',')) t = t.replace(/\./g, '').replace(',', '.');
+  return t === '' ? NaN : Number(t);
+}
+function formatarCPF(t) {
+  const d = digitos(t);
+  return d.length === 11 ? `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}` : t;
+}
+function salvar() { DB.gravar(db); }
+function usuario() {
+  const s = DB.sessao();
+  return s ? db.usuarios.find((u) => u.id === s.usuarioId) || null : null;
+}
+const cliente = (id) => db.clientes.find((c) => c.id === id);
+const equipamento = (id) => db.equipamentos.find((e) => e.id === id);
+const ordem = (id) => db.ordens.find((o) => o.id === id);
+const nomeUsuario = (id) => (db.usuarios.find((u) => u.id === id) || {}).nome || '';
+const rotuloEquip = (e) => e ? `${e.tipo} ${e.marca} ${e.modelo} – ${e.serie}` : '';
+const statusClasse = (s) => 'st-' + s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, '-');
+const chip = (s) => `<span class="status ${statusClasse(s)}">${esc(s)}</span>`;
+
+function alerta(tipo, texto) { return `<div class="alerta ${tipo}" role="${tipo === 'erro' ? 'alert' : 'status'}">${esc(texto)}</div>`; }
+function avisar(tipo, texto) { aviso = { tipo, texto }; }
+function consumirAviso() { const a = aviso; aviso = null; return a ? alerta(a.tipo, a.texto) : ''; }
+function erroCampo(form, campos, texto) {
+  form.querySelectorAll('.invalido').forEach((el) => el.classList.remove('invalido'));
+  campos.forEach((n) => { const el = form.querySelector(`[name="${n}"]`); if (el) el.classList.add('invalido'); });
+  const box = form.querySelector('.msg');
+  box.innerHTML = alerta('erro', texto);
+  const primeiro = form.querySelector('.invalido'); if (primeiro) primeiro.focus();
+}
+function ir(hash) { if (location.hash === hash) rotear(); else location.hash = hash; }
+function registrarHistorico(o, status, obs) {
+  o.status = status;
+  o.historico.push({ status, em: agora(), por: usuario().nome, obs: obs || '' });
+}
+
+/* ---------- rotas e controle de acesso ---------- */
+const ROTAS = {
+  painel: { perfis: TODOS, tela: telaPainel },
+  clientes: { perfis: BALCAO, tela: telaClientes },
+  cliente: { perfis: BALCAO, tela: telaCliente },
+  'nova-os': { perfis: BALCAO, tela: telaNovaOS },
+  ordens: { perfis: TODOS, tela: telaOrdens },
+  os: { perfis: TODOS, tela: telaDetalhes },
+  diagnostico: { perfis: ['Técnico'], tela: telaDiagnostico },
+  orcamento: { perfis: ['Técnico'], tela: telaOrcamento },
+  relatorios: { perfis: ['Administrador'], tela: telaRelatorios },
+  banco: { perfis: TODOS, tela: telaBanco }
+};
+const MENU = [
+  ['painel', 'PAINEL'], ['clientes', 'CLIENTES'], ['nova-os', 'NOVA OS'],
+  ['ordens', 'ORDENS'], ['relatorios', 'RELATÓRIOS'], ['banco', 'BANCO DE DADOS']
+];
+
+function rotear() {
+  db = DB.carregar();
+  const [rota, param] = location.hash.replace(/^#\/?/, '').split('/');
+  const u = usuario();
+  if (!u) { telaLogin(); return; }
+  if (!rota || rota === 'login') { location.hash = '#painel'; return; }
+  const def = ROTAS[rota];
+  if (!def) { moldura(rota, alerta('erro', 'Página não encontrada.')); return; }
+  if (!def.perfis.includes(u.perfil)) {
+    moldura(rota, `<h1>Acesso bloqueado</h1>${alerta('erro', 'Acesso não permitido para este perfil.')}<p><a href="#painel">Voltar ao painel</a></p>`);
+    return;
+  }
+  if (rota !== 'nova-os') novaOS = null;
+  if (rota !== 'orcamento') orc = null;
+  if (rota !== 'os') painelAberto = null;
+  def.tela(param);
+}
+window.addEventListener('hashchange', rotear);
+if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', rotear); else rotear();
+
+function moldura(rotaAtiva, conteudo) {
+  const u = usuario();
+  const itens = MENU.filter(([r]) => ROTAS[r].perfis.includes(u.perfil))
+    .map(([r, t]) => `<a href="#${r}" class="${r === rotaAtiva || (r === 'ordens' && ['os', 'diagnostico', 'orcamento'].includes(rotaAtiva)) || (r === 'clientes' && rotaAtiva === 'cliente') ? 'ativo' : ''}">${t}</a>`).join('');
+  $('#app').innerHTML = `
+    <header class="topo">
+      <a href="#painel" class="marca"><span class="marca-icone" aria-hidden="true"></span>TechService</a>
+      <nav class="menu" aria-label="Menu principal">${itens}</nav>
+      <div class="quem"><span>${esc(u.nome)}</span><small>${esc(u.perfil)}</small><button class="btn-link" id="sair">Sair</button></div>
+    </header>
+    <main class="conteudo">${consumirAviso()}${conteudo}</main>`;
+  $('#sair').onclick = () => { DB.sair(); ir('#login'); };
+}
+
+/* ---------- LOGIN ---------- */
+function telaLogin() {
+  $('#app').innerHTML = `
+    <main class="login">
+      <section class="login-caixa">
+        <div class="login-marca"><span class="marca-icone" aria-hidden="true"></span>TechService</div>
+        <p class="login-sub">Gerenciamento de ordens de serviço</p>
+        ${consumirAviso()}
+        <form id="f-login" novalidate>
+          <div class="msg"></div>
+          <label>E-mail<input name="email" type="email" autocomplete="username"></label>
+          <label>Senha<input name="senha" type="password" autocomplete="current-password"></label>
+          <button class="btn primario largo" type="submit">ENTRAR</button>
+        </form>
+        <details class="dica"><summary>Usuários de teste</summary>
+          <p>atendente@techservice.com · tecnico@techservice.com · admin@techservice.com<br>Senha de todos: Teste@123</p>
+        </details>
+      </section>
+    </main>`;
+  $('#f-login').onsubmit = (ev) => {
+    ev.preventDefault();
+    const f = ev.target, email = f.email.value.trim(), senha = f.senha.value;
+    const vazios = []; if (!email) vazios.push('email'); if (!senha) vazios.push('senha');
+    if (vazios.length) return erroCampo(f, vazios, 'Informe e-mail e senha');
+    const u = db.usuarios.find((x) => x.email.toLowerCase() === email.toLowerCase() && x.senha === senha);
+    if (!u) return erroCampo(f, [], 'E-mail ou senha inválidos');
+    DB.entrar(u.id);
+    ir('#painel');
+  };
+}
+
+/* ---------- PAINEL PRINCIPAL ---------- */
+function telaPainel() {
+  const u = usuario();
+  const lista = u.perfil === 'Técnico' ? db.ordens.filter((o) => o.tecnicoId === u.id) : db.ordens;
+  const etapas = ['Aberta', 'Aguardando aprovação', 'Aprovado', 'Em reparo', 'Concluída', 'Entregue', 'Recusado'];
+  const contagem = etapas.map((s) => `<a class="etapa ${statusClasse(s)}" href="#ordens/${encodeURIComponent(s)}"><strong>${lista.filter((o) => o.status === s).length}</strong><span>${s}</span></a>`).join('');
+  const atalhos = [
+    BALCAO.includes(u.perfil) && '<a class="btn primario" href="#nova-os">NOVA OS</a>',
+    BALCAO.includes(u.perfil) && '<a class="btn" href="#clientes">CLIENTES</a>',
+    '<a class="btn" href="#ordens">ORDENS</a>',
+    u.perfil === 'Administrador' && '<a class="btn" href="#relatorios">RELATÓRIOS</a>'
+  ].filter(Boolean).join('');
+  moldura('painel', `
+    <h1>Olá, ${esc(u.nome.split(' ')[0])}</h1>
+    <p class="sub">${u.perfil === 'Técnico' ? 'Ordens atribuídas a você, por etapa do atendimento.' : 'Ordens de serviço por etapa do atendimento.'}</p>
+    <div class="esteira">${contagem}</div>
+    <div class="acoes">${atalhos}</div>`);
+}
+
+/* ---------- CLIENTES ---------- */
+function telaClientes() {
+  moldura('clientes', `
+    <div class="cabeca"><h1>Clientes</h1><a class="btn primario" href="#cliente/novo">NOVO CLIENTE</a></div>
+    <div class="busca"><label>Buscar por nome ou CPF<input id="busca-cli" placeholder="Ex.: 123.456.789-09 ou Maria"></label></div>
+    <div id="lista-cli"></div>`);
+  const desenhar = () => {
+    const t = $('#busca-cli').value.trim().toLowerCase(), d = digitos(t);
+    const lista = db.clientes.filter((c) => !t || c.nome.toLowerCase().includes(t) || (d && digitos(c.cpf).includes(d)));
+    $('#lista-cli').innerHTML = lista.length ? `
+      <div class="tabela-rolagem"><table><thead><tr><th>Nome</th><th>CPF</th><th>Telefone</th><th>Equipamentos</th><th></th></tr></thead><tbody>
+      ${lista.map((c) => `<tr><td>${esc(c.nome)}</td><td>${esc(c.cpf)}</td><td>${esc(c.telefone)}</td><td>${db.equipamentos.filter((e) => e.clienteId === c.id).length}</td><td><a href="#cliente/${c.id}">Abrir</a></td></tr>`).join('')}
+      </tbody></table></div>` : alerta('info', 'Nenhum cliente encontrado. Use NOVO CLIENTE para cadastrar.');
+  };
+  $('#busca-cli').oninput = desenhar; desenhar();
+}
+
+function telaCliente(param) {
+  const novo = param === 'novo';
+  const c = novo ? { nome: '', cpf: '', telefone: '', email: '' } : cliente(Number(param));
+  if (!c) { moldura('cliente', alerta('erro', 'Cliente não encontrado.')); return; }
+  const equips = novo ? [] : db.equipamentos.filter((e) => e.clienteId === c.id);
+  moldura('cliente', `
+    <p class="trilha"><a href="#clientes">Clientes</a> / ${novo ? 'Novo cliente' : esc(c.nome)}</p>
+    <h1>${novo ? 'Novo cliente' : esc(c.nome)}</h1>
+    <form id="f-cli" class="cartao" novalidate>
+      <div class="msg"></div>
+      <div class="grade2">
+        <label>Nome<input name="nome" value="${esc(c.nome)}"></label>
+        <label>CPF<input name="cpf" value="${esc(c.cpf)}" placeholder="000.000.000-00"></label>
+        <label>Telefone<input name="telefone" value="${esc(c.telefone)}" placeholder="(11) 90000-0000"></label>
+        <label>E-mail<input name="email" type="email" value="${esc(c.email)}"></label>
+      </div>
+      <button class="btn primario" type="submit">SALVAR</button>
+    </form>
+    ${novo ? '' : `
+    <section class="secao" id="equipamentos">
+      <div class="cabeca"><h2>Equipamentos</h2><button class="btn" id="abrir-equip">NOVO EQUIPAMENTO</button></div>
+      <div id="form-equip"></div>
+      ${equips.length ? `<div class="tabela-rolagem"><table><thead><tr><th>Tipo</th><th>Marca</th><th>Modelo</th><th>Nº de série</th><th>Ordens</th></tr></thead><tbody>
+        ${equips.map((e) => `<tr><td>${esc(e.tipo)}</td><td>${esc(e.marca)}</td><td>${esc(e.modelo)}</td><td>${esc(e.serie)}</td><td>${db.ordens.filter((o) => o.equipamentoId === e.id).length}</td></tr>`).join('')}
+        </tbody></table></div>` : alerta('info', 'Nenhum equipamento cadastrado para este cliente.')}
+    </section>`}`);
+
+  $('#f-cli').onsubmit = (ev) => {
+    ev.preventDefault();
+    const f = ev.target;
+    const dados = { nome: f.nome.value.trim(), cpf: f.cpf.value.trim(), telefone: f.telefone.value.trim(), email: f.email.value.trim() };
+    if (!dados.nome) return erroCampo(f, ['nome'], 'Informe o nome do cliente');
+    if (digitos(dados.cpf).length !== 11) return erroCampo(f, ['cpf'], 'Informe um CPF com 11 dígitos');
+    if (!dados.telefone) return erroCampo(f, ['telefone'], 'Informe o telefone do cliente');
+    const dup = db.clientes.find((x) => digitos(x.cpf) === digitos(dados.cpf) && x.id !== c.id);
+    if (dup) return erroCampo(f, ['cpf'], 'CPF já cadastrado');
+    dados.cpf = formatarCPF(dados.cpf);
+    if (novo) {
+      db.clientes.push({ id: db.seq.cliente++, ...dados, criadoEm: agora() });
+      salvar(); avisar('ok', 'Cliente cadastrado com sucesso'); ir('#clientes');
+    } else {
+      Object.assign(c, dados, { alteradoEm: agora() });
+      salvar(); avisar('ok', 'Cliente alterado com sucesso'); ir(`#cliente/${c.id}`);
+    }
+  };
+  if (!novo) {
+    $('#abrir-equip').onclick = () => formEquipamento('#form-equip', c.id, () => { avisar('ok', 'Equipamento cadastrado com sucesso'); ir(`#cliente/${c.id}`); });
+  }
+}
+
+/* formulário de equipamento reaproveitado em CLIENTES e NOVA OS */
+function formEquipamento(alvo, clienteId, aoSalvar) {
+  $(alvo).innerHTML = `
+    <div id="f-equip" class="cartao destaque">
+      <div class="msg"></div>
+      <div class="grade4">
+        <label>Tipo<input name="tipo" placeholder="Notebook"></label>
+        <label>Marca<input name="marca" placeholder="Dell"></label>
+        <label>Modelo<input name="modelo" placeholder="Inspiron 15"></label>
+        <label>Nº de série<input name="serie" placeholder="ABC12345"></label>
+      </div>
+      <div class="acoes"><button class="btn primario" type="button" id="salvar-equip">SALVAR EQUIPAMENTO</button><button class="btn-link" type="button" id="cancelar-equip">Cancelar</button></div>
+    </div>`;
+  const f = $('#f-equip');
+  const campo = (n) => f.querySelector(`[name="${n}"]`);
+  campo('tipo').focus();
+  $('#cancelar-equip').onclick = () => { $(alvo).innerHTML = ''; };
+  const salvarEquip = () => {
+    const d = { tipo: campo('tipo').value.trim(), marca: campo('marca').value.trim(), modelo: campo('modelo').value.trim(), serie: campo('serie').value.trim().toUpperCase() };
+    const vazios = ['tipo', 'marca', 'modelo'].filter((k) => !d[k]);
+    if (vazios.length) return erroCampo(f, vazios, 'Informe tipo, marca e modelo do equipamento');
+    if (!d.serie) return erroCampo(f, ['serie'], 'Informe o número de série');
+    if (db.equipamentos.some((e) => e.serie === d.serie)) return erroCampo(f, ['serie'], 'Número de série já cadastrado');
+    const e = { id: db.seq.equipamento++, clienteId, ...d, criadoEm: agora() };
+    db.equipamentos.push(e); salvar();
+    aoSalvar(e);
+  };
+  $('#salvar-equip').onclick = salvarEquip;
+  f.querySelectorAll('input').forEach((el) => el.onkeydown = (ev) => { if (ev.key === 'Enter') { ev.preventDefault(); salvarEquip(); } });
+}
+
+/* ---------- NOVA OS ---------- */
+function telaNovaOS() {
+  if (!novaOS) novaOS = { clienteId: null, busca: '', resultado: null, equipamentoId: '', problema: '' };
+  const c = novaOS.clienteId ? cliente(novaOS.clienteId) : null;
+  const equips = c ? db.equipamentos.filter((e) => e.clienteId === c.id) : [];
+  let blocoBusca = '';
+  if (novaOS.resultado === 'nenhum') {
+    blocoBusca = `${alerta('erro', 'Cliente não encontrado')}<p><a class="btn" href="#cliente/novo">Cadastrar cliente</a></p>`;
+  } else if (Array.isArray(novaOS.resultado)) {
+    blocoBusca = `<p class="sub">Selecione o cliente:</p><ul class="escolha">${novaOS.resultado.map((x) => `<li><button class="btn-link" data-cli="${x.id}">${esc(x.nome)} — ${esc(x.cpf)}</button></li>`).join('')}</ul>`;
+  }
+  moldura('nova-os', `
+    <h1>Nova ordem de serviço</h1>
+    <form id="f-os" class="cartao" novalidate>
+      <div class="msg"></div>
+      <fieldset>
+        <legend>Cliente</legend>
+        ${c ? `<div class="selecionado"><div><strong>${esc(c.nome)}</strong><span>${esc(c.cpf)} · ${esc(c.telefone)}</span></div><button type="button" class="btn-link" id="trocar-cli">Trocar cliente</button></div>` : `
+        <div class="linha">
+          <label class="cresce">CPF ou nome do cliente<input name="cliente" value="${esc(novaOS.busca)}" placeholder="123.456.789-09"></label>
+          <button type="button" class="btn" id="buscar-cli">BUSCAR</button>
+        </div>${blocoBusca}`}
+      </fieldset>
+      <fieldset ${c ? '' : 'disabled'}>
+        <legend>Equipamento</legend>
+        <div class="linha">
+          <label class="cresce">Equipamento<select name="equipamento">
+            <option value="">Selecione o equipamento</option>
+            ${equips.map((e) => `<option value="${e.id}" ${String(e.id) === String(novaOS.equipamentoId) ? 'selected' : ''}>${esc(rotuloEquip(e))}</option>`).join('')}
+          </select></label>
+          <button type="button" class="btn" id="novo-equip">CADASTRAR NOVO EQUIPAMENTO</button>
+        </div>
+        <div id="form-equip-os"></div>
+      </fieldset>
+      <fieldset ${c ? '' : 'disabled'}>
+        <legend>Atendimento</legend>
+        <label>Problema relatado<textarea name="problema" rows="3" placeholder="Descreva o defeito informado pelo cliente">${esc(novaOS.problema)}</textarea></label>
+      </fieldset>
+      <button class="btn primario" type="submit">SALVAR</button>
+    </form>`);
+
+  const f = $('#f-os');
+  const guardar = () => {
+    if (f.equipamento) novaOS.equipamentoId = f.equipamento.value;
+    if (f.problema) novaOS.problema = f.problema.value;
+    if (f.cliente) novaOS.busca = f.cliente.value;
+  };
+  if (!c) {
+    const buscar = () => {
+      guardar();
+      const t = novaOS.busca.trim(), d = digitos(t);
+      if (!t) return erroCampo(f, ['cliente'], 'Informe o CPF ou o nome do cliente');
+      const achados = db.clientes.filter((x) => (d.length >= 3 && digitos(x.cpf).includes(d)) || (!d && x.nome.toLowerCase().includes(t.toLowerCase())));
+      if (achados.length === 1) { novaOS.clienteId = achados[0].id; novaOS.resultado = null; }
+      else novaOS.resultado = achados.length ? achados : 'nenhum';
+      telaNovaOS();
+    };
+    $('#buscar-cli').onclick = buscar;
+    f.cliente.onkeydown = (ev) => { if (ev.key === 'Enter') { ev.preventDefault(); buscar(); } };
+    f.querySelectorAll('[data-cli]').forEach((b) => b.onclick = () => { novaOS.clienteId = Number(b.dataset.cli); novaOS.resultado = null; telaNovaOS(); });
+  } else {
+    $('#trocar-cli').onclick = () => { novaOS = null; telaNovaOS(); };
+    $('#novo-equip').onclick = () => {
+      guardar();
+      formEquipamento('#form-equip-os', c.id, (e) => { novaOS.equipamentoId = String(e.id); avisar('ok', 'Equipamento cadastrado com sucesso'); telaNovaOS(); });
+    };
+  }
+  f.onsubmit = (ev) => {
+    ev.preventDefault();
+    guardar();
+    if (!novaOS.clienteId) return erroCampo(f, ['cliente'], 'Selecione o cliente');
+    if (!novaOS.equipamentoId) return erroCampo(f, ['equipamento'], 'Selecione o equipamento');
+    if (!novaOS.problema.trim()) return erroCampo(f, ['problema'], 'Informe o problema relatado');
+    const n = db.seq.ordem++;
+    const o = {
+      id: n, numero: 'OS-' + String(n).padStart(4, '0'), clienteId: novaOS.clienteId, equipamentoId: Number(novaOS.equipamentoId),
+      problema: novaOS.problema.trim(), status: 'Aberta', tecnicoId: null, criadaEm: agora(),
+      diagnostico: null, orcamento: null, aprovacao: null, conclusao: null, entrega: null,
+      historico: [{ status: 'Aberta', em: agora(), por: usuario().nome, obs: 'Ordem aberta' }]
+    };
+    db.ordens.push(o); salvar(); novaOS = null;
+    avisar('ok', `Ordem de serviço registrada com sucesso — ${o.numero}, status Aberta`);
+    ir(`#os/${o.id}`);
+  };
+}
+
+/* ---------- ORDENS ---------- */
+function telaOrdens(filtro) {
+  const u = usuario();
+  const status = filtro ? decodeURIComponent(filtro) : '';
+  let lista = u.perfil === 'Técnico' ? db.ordens.filter((o) => o.tecnicoId === u.id) : db.ordens.slice();
+  if (status) lista = lista.filter((o) => o.status === status);
+  lista.sort((a, b) => b.id - a.id);
+  const opcoes = ['', 'Aberta', 'Aguardando aprovação', 'Aprovado', 'Recusado', 'Em reparo', 'Concluída', 'Entregue']
+    .map((s) => `<option value="${s}" ${s === status ? 'selected' : ''}>${s || 'Todos os status'}</option>`).join('');
+  moldura('ordens', `
+    <div class="cabeca"><h1>${u.perfil === 'Técnico' ? 'Minhas ordens' : 'Ordens de serviço'}</h1>${BALCAO.includes(u.perfil) ? '<a class="btn primario" href="#nova-os">NOVA OS</a>' : ''}</div>
+    <div class="busca"><label>Status<select id="filtro">${opcoes}</select></label><span class="total">${lista.length} ordem(ns)</span></div>
+    ${lista.length ? `<div class="tabela-rolagem"><table><thead><tr><th>Número</th><th>Aberta em</th><th>Cliente</th><th>Equipamento</th><th>Técnico</th><th>Status</th></tr></thead><tbody>
+      ${lista.map((o) => `<tr class="clicavel" data-os="${o.id}"><td><a href="#os/${o.id}">${o.numero}</a></td><td>${dataBR(o.criadaEm)}</td><td>${esc(cliente(o.clienteId)?.nome)}</td><td>${esc(rotuloEquip(equipamento(o.equipamentoId)))}</td><td>${esc(nomeUsuario(o.tecnicoId)) || '<span class="mudo">Não atribuído</span>'}</td><td>${chip(o.status)}</td></tr>`).join('')}
+    </tbody></table></div>` : alerta('info', u.perfil === 'Técnico' ? 'Nenhuma ordem atribuída a você neste status.' : 'Nenhuma ordem de serviço neste status.')}`);
+  $('#filtro').onchange = (e) => ir(e.target.value ? `#ordens/${encodeURIComponent(e.target.value)}` : '#ordens');
+  document.querySelectorAll('tr[data-os]').forEach((tr) => tr.onclick = (e) => { if (e.target.tagName !== 'A') ir(`#os/${tr.dataset.os}`); });
+}
+
+/* ---------- DETALHES DA OS ---------- */
+function telaDetalhes(param) {
+  const o = ordem(Number(param));
+  const u = usuario();
+  if (!o) { moldura('os', alerta('erro', 'Ordem de serviço não encontrada.')); return; }
+  if (u.perfil === 'Técnico' && o.tecnicoId !== u.id) { moldura('os', alerta('erro', 'Esta ordem não está atribuída a você.')); return; }
+  const c = cliente(o.clienteId), e = equipamento(o.equipamentoId);
+  const balcao = BALCAO.includes(u.perfil), tecnico = u.perfil === 'Técnico';
+  const tecnicos = db.usuarios.filter((x) => x.perfil === 'Técnico');
+  const blocos = [];
+
+  if (balcao && !['Concluída', 'Entregue', 'Recusado'].includes(o.status)) {
+    blocos.push(`<form id="f-tec" class="cartao" novalidate><h2>Técnico responsável</h2><div class="msg"></div>
+      <div class="linha"><label class="cresce">Técnico responsável<select name="tecnico"><option value="">Selecione um técnico</option>
+      ${tecnicos.map((t) => `<option value="${t.id}" ${t.id === o.tecnicoId ? 'selected' : ''}>${esc(t.nome)}</option>`).join('')}</select></label>
+      <button class="btn primario" type="submit">SALVAR</button></div></form>`);
+  }
+  if (tecnico) {
+    const podeDiag = o.status === 'Aberta';
+    const podeOrc = o.status === 'Aberta' && o.diagnostico;
+    blocos.push(`<div class="cartao"><h2>Análise técnica</h2>
+      <div class="acoes">
+        ${podeDiag ? `<a class="btn primario" href="#diagnostico/${o.id}">DIAGNÓSTICO</a>` : '<button class="btn" disabled>DIAGNÓSTICO</button>'}
+        ${podeOrc ? `<a class="btn primario" href="#orcamento/${o.id}">ORÇAMENTO</a>` : '<button class="btn" disabled title="Registre o diagnóstico antes do orçamento">ORÇAMENTO</button>'}
+      </div>
+      ${o.status === 'Aberta' && !o.diagnostico ? '<p class="nota">Registre o diagnóstico antes do orçamento.</p>' : ''}</div>`);
+  }
+  if (balcao && o.status === 'Aguardando aprovação') {
+    let corpo = `<div class="acoes"><button class="btn primario" id="aprovar">APROVAR ORÇAMENTO</button><button class="btn perigo" id="recusar">RECUSAR ORÇAMENTO</button></div>`;
+    if (painelAberto === 'aprovar') corpo = `<form id="f-aprov" novalidate><div class="msg"></div><p>Confirmar a aprovação do orçamento de <strong>${moeda(o.orcamento.total)}</strong>?</p>
+      <div class="acoes"><button class="btn primario" type="submit">CONFIRMAR</button><button class="btn-link" type="button" data-cancelar>Cancelar</button></div></form>`;
+    if (painelAberto === 'recusar') corpo = `<form id="f-recusa" novalidate><div class="msg"></div><label>Motivo da recusa<input name="motivo"></label>
+      <div class="acoes"><button class="btn perigo" type="submit">CONFIRMAR</button><button class="btn-link" type="button" data-cancelar>Cancelar</button></div></form>`;
+    blocos.push(`<div class="cartao"><h2>Aprovação do orçamento</h2>${corpo}</div>`);
+  }
+  if (tecnico && ['Aberta', 'Aguardando aprovação', 'Aprovado', 'Recusado'].includes(o.status)) {
+    blocos.push(`<form id="f-status" class="cartao" novalidate><h2>Atualizar status</h2><div class="msg"></div>
+      <div class="linha"><label class="cresce">Status<select name="status"><option value="">Selecione o novo status</option><option>Em reparo</option></select></label>
+      <button class="btn primario" type="submit">SALVAR</button></div>
+      ${o.status === 'Recusado' ? '<p class="nota">Orçamento recusado pelo cliente: o equipamento não pode seguir para reparo.</p>' : ''}</form>`);
+  }
+  if (tecnico && o.status === 'Em reparo') {
+    blocos.push(painelAberto === 'concluir'
+      ? `<form id="f-concluir" class="cartao" novalidate><h2>Concluir reparo</h2><div class="msg"></div><label>Observação<textarea name="obs" rows="2"></textarea></label>
+        <div class="acoes"><button class="btn primario" type="submit">CONFIRMAR</button><button class="btn-link" type="button" data-cancelar>Cancelar</button></div></form>`
+      : `<div class="cartao"><h2>Concluir reparo</h2><button class="btn primario" id="concluir">CONCLUIR REPARO</button></div>`);
+  }
+  if (balcao && o.status === 'Concluída') {
+    blocos.push(painelAberto === 'entrega'
+      ? `<form id="f-entrega" class="cartao" novalidate><h2>Registrar entrega</h2><div class="msg"></div><label>Recebido por<input name="recebido" value=""></label>
+        <div class="acoes"><button class="btn primario" type="submit">CONFIRMAR</button><button class="btn-link" type="button" data-cancelar>Cancelar</button></div></form>`
+      : `<div class="cartao"><h2>Entrega</h2><button class="btn primario" id="entregar">REGISTRAR ENTREGA</button></div>`);
+  }
+
+  const orcHtml = o.orcamento ? `<table class="compacta"><thead><tr><th>Item</th><th>Tipo</th><th>Qtd.</th><th>Valor unit.</th><th>Subtotal</th></tr></thead><tbody>
+      ${o.orcamento.itens.map((i) => `<tr><td>${esc(i.descricao)}</td><td>${i.tipo}</td><td>${i.qtd}</td><td>${moeda(i.valor)}</td><td>${moeda(i.qtd * i.valor)}</td></tr>`).join('')}
+      </tbody><tfoot><tr><td colspan="4">Total</td><td>${moeda(o.orcamento.total)}</td></tr></tfoot></table>` : '<p class="mudo">Sem orçamento.</p>';
+
+  moldura('os', `
+    <p class="trilha"><a href="#ordens">Ordens</a> / ${o.numero}</p>
+    <div class="cabeca"><h1>${o.numero}</h1>${chip(o.status)}</div>
+    <div class="detalhes">
+      <section class="ficha">
+        <dl>
+          <dt>Cliente</dt><dd>${esc(c?.nome)}<br><span class="mudo">${esc(c?.cpf)} · ${esc(c?.telefone)}</span></dd>
+          <dt>Equipamento</dt><dd>${esc(rotuloEquip(e))}</dd>
+          <dt>Problema relatado</dt><dd>${esc(o.problema)}</dd>
+          <dt>Técnico responsável</dt><dd>${esc(nomeUsuario(o.tecnicoId)) || '<span class="mudo">Não atribuído</span>'}</dd>
+          <dt>Aberta em</dt><dd>${dataHoraBR(o.criadaEm)}</dd>
+          <dt>Diagnóstico</dt><dd>${o.diagnostico ? `${esc(o.diagnostico.texto)}${o.diagnostico.obs ? `<br><span class="mudo">Obs.: ${esc(o.diagnostico.obs)}</span>` : ''}` : '<span class="mudo">Sem diagnóstico.</span>'}</dd>
+          <dt>Orçamento</dt><dd>${orcHtml}</dd>
+          ${o.aprovacao ? `<dt>Decisão do cliente</dt><dd>${o.aprovacao.decisao === 'aprovado' ? 'Aprovado' : 'Recusado'} em ${dataHoraBR(o.aprovacao.em)}${o.aprovacao.motivo ? `<br><span class="mudo">Motivo: ${esc(o.aprovacao.motivo)}</span>` : ''}</dd>` : ''}
+          ${o.conclusao ? `<dt>Conclusão</dt><dd>${dataHoraBR(o.conclusao.em)}${o.conclusao.obs ? ` — ${esc(o.conclusao.obs)}` : ''}</dd>` : ''}
+          ${o.entrega ? `<dt>Entrega</dt><dd>${dataHoraBR(o.entrega.em)}, recebido por ${esc(o.entrega.recebidoPor)}</dd>` : ''}
+        </dl>
+        <h2>Histórico</h2>
+        <ol class="historico">${o.historico.map((h) => `<li>${chip(h.status)}<span>${dataHoraBR(h.em)} · ${esc(h.por)}${h.obs ? ` — ${esc(h.obs)}` : ''}</span></li>`).join('')}</ol>
+      </section>
+      <aside class="lado">${blocos.join('') || '<p class="mudo">Nenhuma ação disponível para este perfil nesta etapa.</p>'}</aside>
+    </div>`);
+
+  const reabrir = () => telaDetalhes(param);
+  document.querySelectorAll('[data-cancelar]').forEach((b) => b.onclick = () => { painelAberto = null; reabrir(); });
+  const on = (sel, fn) => { const el = $(sel); if (el) el[el.tagName === 'FORM' ? 'onsubmit' : 'onclick'] = fn; };
+
+  on('#f-tec', (ev) => {
+    ev.preventDefault();
+    const f = ev.target;
+    if (!f.tecnico.value) return erroCampo(f, ['tecnico'], 'Selecione um técnico');
+    o.tecnicoId = Number(f.tecnico.value);
+    o.historico.push({ status: o.status, em: agora(), por: u.nome, obs: `Técnico atribuído: ${nomeUsuario(o.tecnicoId)}` });
+    salvar(); avisar('ok', 'Técnico atribuído com sucesso'); reabrir();
+  });
+  on('#aprovar', () => { painelAberto = 'aprovar'; reabrir(); });
+  on('#recusar', () => { painelAberto = 'recusar'; reabrir(); });
+  on('#f-aprov', (ev) => {
+    ev.preventDefault();
+    o.aprovacao = { decisao: 'aprovado', em: agora(), por: u.nome };
+    registrarHistorico(o, 'Aprovado', 'Orçamento aprovado pelo cliente');
+    salvar(); painelAberto = null; avisar('ok', 'Orçamento aprovado'); reabrir();
+  });
+  on('#f-recusa', (ev) => {
+    ev.preventDefault();
+    const f = ev.target, motivo = f.motivo.value.trim();
+    if (!motivo) return erroCampo(f, ['motivo'], 'Informe o motivo da recusa');
+    o.aprovacao = { decisao: 'recusado', motivo, em: agora(), por: u.nome };
+    registrarHistorico(o, 'Recusado', `Orçamento recusado: ${motivo}`);
+    salvar(); painelAberto = null; avisar('ok', 'Orçamento recusado'); reabrir();
+  });
+  on('#f-status', (ev) => {
+    ev.preventDefault();
+    const f = ev.target, novo = f.status.value;
+    if (!novo) return erroCampo(f, ['status'], 'Selecione o novo status');
+    if (o.status === 'Recusado' || o.status === 'Aguardando aprovação') return erroCampo(f, ['status'], 'Orçamento não aprovado');
+    if (o.status === 'Aberta') return erroCampo(f, ['status'], 'Registre o diagnóstico e o orçamento antes do reparo');
+    registrarHistorico(o, novo, 'Status atualizado');
+    salvar(); avisar('ok', 'Status atualizado'); reabrir();
+  });
+  on('#concluir', () => { painelAberto = 'concluir'; reabrir(); });
+  on('#f-concluir', (ev) => {
+    ev.preventDefault();
+    const obs = ev.target.obs.value.trim();
+    o.conclusao = { em: agora(), obs, por: u.nome };
+    registrarHistorico(o, 'Concluída', obs || 'Reparo concluído');
+    salvar(); painelAberto = null; avisar('ok', 'Reparo concluído'); reabrir();
+  });
+  on('#entregar', () => { painelAberto = 'entrega'; reabrir(); });
+  on('#f-entrega', (ev) => {
+    ev.preventDefault();
+    const f = ev.target, quem = f.recebido.value.trim();
+    if (!quem) return erroCampo(f, ['recebido'], 'Informe quem recebeu o equipamento');
+    o.entrega = { em: agora(), recebidoPor: quem, por: u.nome };
+    registrarHistorico(o, 'Entregue', `Recebido por ${quem}`);
+    salvar(); painelAberto = null; avisar('ok', 'Entrega registrada com sucesso'); reabrir();
+  });
+}
+
+/* ---------- DIAGNÓSTICO ---------- */
+function telaDiagnostico(param) {
+  const o = ordem(Number(param)), u = usuario();
+  if (!o || o.tecnicoId !== u.id) { moldura('diagnostico', alerta('erro', 'Ordem de serviço não encontrada ou não atribuída a você.')); return; }
+  if (o.status !== 'Aberta') { moldura('diagnostico', `${alerta('erro', 'O diagnóstico só pode ser registrado em ordens com status Aberta.')}<p><a href="#os/${o.id}">Voltar à ${o.numero}</a></p>`); return; }
+  moldura('diagnostico', `
+    <p class="trilha"><a href="#ordens">Ordens</a> / <a href="#os/${o.id}">${o.numero}</a> / Diagnóstico</p>
+    <h1>Diagnóstico — ${o.numero}</h1>
+    <p class="sub">${esc(rotuloEquip(equipamento(o.equipamentoId)))} · Problema relatado: ${esc(o.problema)}</p>
+    <form id="f-diag" class="cartao" novalidate>
+      <div class="msg"></div>
+      <label>Diagnóstico<textarea name="diagnostico" rows="3">${esc(o.diagnostico?.texto)}</textarea></label>
+      <label>Observações técnicas<textarea name="obs" rows="2">${esc(o.diagnostico?.obs)}</textarea></label>
+      <button class="btn primario" type="submit">SALVAR</button>
+    </form>`);
+  $('#f-diag').onsubmit = (ev) => {
+    ev.preventDefault();
+    const f = ev.target, texto = f.diagnostico.value.trim();
+    if (!texto) return erroCampo(f, ['diagnostico'], 'Informe o diagnóstico');
+    o.diagnostico = { texto, obs: f.obs.value.trim(), em: agora(), por: u.nome };
+    o.historico.push({ status: o.status, em: agora(), por: u.nome, obs: 'Diagnóstico registrado' });
+    salvar(); avisar('ok', 'Diagnóstico registrado com sucesso'); ir(`#os/${o.id}`);
+  };
+}
+
+/* ---------- ORÇAMENTO ---------- */
+function telaOrcamento(param) {
+  const o = ordem(Number(param)), u = usuario();
+  if (!o || o.tecnicoId !== u.id) { moldura('orcamento', alerta('erro', 'Ordem de serviço não encontrada ou não atribuída a você.')); return; }
+  if (!o.diagnostico) { moldura('orcamento', `${alerta('erro', 'Registre o diagnóstico antes do orçamento')}<p><a href="#os/${o.id}">Voltar à ${o.numero}</a></p>`); return; }
+  if (o.status !== 'Aberta') { moldura('orcamento', `${alerta('erro', 'O orçamento desta ordem já foi registrado.')}<p><a href="#os/${o.id}">Voltar à ${o.numero}</a></p>`); return; }
+  if (!orc || orc.osId !== o.id) orc = { osId: o.id, itens: [] };
+  moldura('orcamento', `
+    <p class="trilha"><a href="#ordens">Ordens</a> / <a href="#os/${o.id}">${o.numero}</a> / Orçamento</p>
+    <h1>Orçamento — ${o.numero}</h1>
+    <p class="sub">Diagnóstico: ${esc(o.diagnostico.texto)}</p>
+    <form id="f-orc" class="cartao" novalidate>
+      <div class="msg"></div>
+      <div class="tabela-rolagem"><table class="itens"><thead><tr><th>Tipo</th><th>Descrição</th><th>Qtd.</th><th>Valor unitário (R$)</th><th>Subtotal</th><th></th></tr></thead>
+        <tbody id="itens"></tbody>
+        <tfoot><tr><td colspan="4">Total</td><td id="total"></td><td></td></tr></tfoot></table></div>
+      <div class="acoes"><button type="button" class="btn" id="add-serv">ADICIONAR SERVIÇO</button><button type="button" class="btn" id="add-peca">ADICIONAR PEÇA</button></div>
+      <button class="btn primario" type="submit">SALVAR ORÇAMENTO</button>
+    </form>`);
+  const ler = () => {
+    document.querySelectorAll('#itens tr').forEach((tr, i) => {
+      orc.itens[i].descricao = tr.querySelector('[data-k=descricao]').value;
+      orc.itens[i].qtd = tr.querySelector('[data-k=qtd]').value;
+      orc.itens[i].valor = tr.querySelector('[data-k=valor]').value;
+    });
+  };
+  const subtotal = (i) => { const q = numero(i.qtd), v = numero(i.valor); return isNaN(q) || isNaN(v) ? 0 : q * v; };
+  const atualizarTotal = () => {
+    ler();
+    document.querySelectorAll('#itens tr').forEach((tr, i) => { tr.querySelector('.sub-item').textContent = moeda(subtotal(orc.itens[i])); });
+    $('#total').textContent = moeda(orc.itens.reduce((s, i) => s + subtotal(i), 0));
+  };
+  const desenhar = () => {
+    $('#itens').innerHTML = orc.itens.length ? orc.itens.map((i, n) => `<tr>
+      <td>${i.tipo}</td>
+      <td><input data-k="descricao" name="descricao-${n}" value="${esc(i.descricao)}" placeholder="${i.tipo === 'Serviço' ? 'Troca de fonte' : 'Fonte 65W'}"></td>
+      <td><input data-k="qtd" name="qtd-${n}" value="${esc(i.qtd)}" inputmode="numeric" class="curto"></td>
+      <td><input data-k="valor" name="valor-${n}" value="${esc(i.valor)}" inputmode="decimal" placeholder="0,00" class="medio"></td>
+      <td class="sub-item"></td>
+      <td><button type="button" class="btn-link" data-rem="${n}">Remover</button></td></tr>`).join('')
+      : '<tr><td colspan="6" class="mudo">Nenhum item. Adicione serviços e peças.</td></tr>';
+    if (orc.itens.length) {
+      document.querySelectorAll('#itens input').forEach((el) => el.oninput = atualizarTotal);
+      document.querySelectorAll('[data-rem]').forEach((b) => b.onclick = () => { ler(); orc.itens.splice(Number(b.dataset.rem), 1); desenhar(); });
+      atualizarTotal();
+    } else { $('#total').textContent = moeda(0); }
+  };
+  const adicionar = (tipo) => { if (orc.itens.length) ler(); orc.itens.push({ tipo, descricao: '', qtd: '1', valor: '' }); desenhar(); $(`#itens tr:last-child [data-k=descricao]`).focus(); };
+  $('#add-serv').onclick = () => adicionar('Serviço');
+  $('#add-peca').onclick = () => adicionar('Peça');
+  desenhar();
+  $('#f-orc').onsubmit = (ev) => {
+    ev.preventDefault();
+    const f = ev.target;
+    if (orc.itens.length) ler();
+    if (!orc.itens.length) return erroCampo(f, [], 'Adicione pelo menos um serviço ou peça');
+    for (let n = 0; n < orc.itens.length; n++) {
+      const i = orc.itens[n];
+      if (!i.descricao.trim()) return erroCampo(f, [`descricao-${n}`], 'Informe a descrição do item');
+      const q = numero(i.qtd);
+      if (isNaN(q) || q <= 0 || !Number.isInteger(q)) return erroCampo(f, [`qtd-${n}`], 'A quantidade deve ser maior que zero');
+      const v = numero(i.valor);
+      if (isNaN(v) || v <= 0) return erroCampo(f, [`valor-${n}`], 'O valor deve ser maior que zero');
+    }
+    const itens = orc.itens.map((i) => ({ tipo: i.tipo, descricao: i.descricao.trim(), qtd: numero(i.qtd), valor: numero(i.valor) }));
+    const total = Math.round(itens.reduce((s, i) => s + i.qtd * i.valor, 0) * 100) / 100;
+    o.orcamento = { itens, total, em: agora(), por: u.nome };
+    registrarHistorico(o, 'Aguardando aprovação', `Orçamento de ${moeda(total)}`);
+    salvar(); orc = null; avisar('ok', `Orçamento registrado com sucesso — total ${moeda(total)}`); ir(`#os/${o.id}`);
+  };
+}
+
+/* ---------- RELATÓRIOS ---------- */
+function telaRelatorios() {
+  const hoje = new Date();
+  const ini = new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().slice(0, 10);
+  const fim = hoje.toISOString().slice(0, 10);
+  moldura('relatorios', `
+    <h1>Relatórios</h1>
+    <form id="f-rel" class="cartao" novalidate>
+      <div class="msg"></div>
+      <div class="grade3">
+        <label>Relatório<select name="tipo"><option>Ordens de serviço por período</option></select></label>
+        <label>Data inicial<input type="date" name="ini" value="${ini}"></label>
+        <label>Data final<input type="date" name="fim" value="${fim}"></label>
+      </div>
+      <button class="btn primario" type="submit">GERAR</button>
+    </form>
+    <div id="resultado"></div>`);
+  $('#f-rel').onsubmit = (ev) => {
+    ev.preventDefault();
+    const f = ev.target, a = f.ini.value, b = f.fim.value;
+    if (!a || !b) return erroCampo(f, [!a && 'ini', !b && 'fim'].filter(Boolean), 'Informe data inicial e final');
+    if (a > b) return erroCampo(f, ['ini', 'fim'], 'A data inicial deve ser anterior à data final');
+    f.querySelector('.msg').innerHTML = '';
+    const ini = new Date(a + 'T00:00:00'), fim = new Date(b + 'T23:59:59');
+    const lista = db.ordens.filter((o) => { const d = new Date(o.criadaEm); return d >= ini && d <= fim; }).sort((x, y) => x.id - y.id);
+    if (!lista.length) { $('#resultado').innerHTML = alerta('info', 'Nenhuma ordem de serviço encontrada no período'); return; }
+    const porStatus = {};
+    lista.forEach((o) => { porStatus[o.status] = (porStatus[o.status] || 0) + 1; });
+    const totalAprov = lista.filter((o) => o.aprovacao?.decisao === 'aprovado').reduce((s, o) => s + o.orcamento.total, 0);
+    $('#resultado').innerHTML = `
+      <section class="secao">
+        <h2>Ordens de serviço de ${dataBR(ini.toISOString())} a ${dataBR(fim.toISOString())}</h2>
+        <p class="resumo"><strong>${lista.length}</strong> ordem(ns) no período · ${Object.entries(porStatus).map(([s, n]) => `${s}: ${n}`).join(' · ')} · Orçamentos aprovados: ${moeda(totalAprov)}</p>
+        <div class="tabela-rolagem"><table><thead><tr><th>Número</th><th>Aberta em</th><th>Cliente</th><th>Equipamento</th><th>Técnico</th><th>Orçamento</th><th>Status</th></tr></thead><tbody>
+        ${lista.map((o) => `<tr><td><a href="#os/${o.id}">${o.numero}</a></td><td>${dataBR(o.criadaEm)}</td><td>${esc(cliente(o.clienteId)?.nome)}</td><td>${esc(rotuloEquip(equipamento(o.equipamentoId)))}</td><td>${esc(nomeUsuario(o.tecnicoId))}</td><td>${o.orcamento ? moeda(o.orcamento.total) : '—'}</td><td>${chip(o.status)}</td></tr>`).join('')}
+        </tbody></table></div>
+      </section>`;
+  };
+}
+
+/* ---------- CONSULTA DIRETA AO BANCO ---------- */
+function telaBanco(tabelaSel) {
+  const u = usuario();
+  const tabelas = {
+    clientes: { cols: ['id', 'nome', 'cpf', 'telefone', 'email', 'criadoEm'], linhas: db.clientes },
+    equipamentos: { cols: ['id', 'clienteId', 'tipo', 'marca', 'modelo', 'serie', 'criadoEm'], linhas: db.equipamentos },
+    ordens: {
+      cols: ['id', 'numero', 'clienteId', 'equipamentoId', 'tecnicoId', 'status', 'problema', 'diagnostico', 'total_orcamento', 'criadaEm'],
+      linhas: db.ordens.map((o) => ({ ...o, diagnostico: o.diagnostico?.texto || null, total_orcamento: o.orcamento ? o.orcamento.total : null }))
+    },
+    itens_orcamento: {
+      cols: ['ordemId', 'tipo', 'descricao', 'qtd', 'valor'],
+      linhas: db.ordens.flatMap((o) => (o.orcamento?.itens || []).map((i) => ({ ordemId: o.id, ...i })))
+    },
+    usuarios: { cols: ['id', 'nome', 'email', 'perfil'], linhas: db.usuarios }
+  };
+  const atual = tabelas[tabelaSel] ? tabelaSel : 'ordens';
+  const t = tabelas[atual];
+  const cel = (v) => v === null || v === undefined ? '<span class="mudo">NULL</span>' : esc(v);
+  moldura('banco', `
+    <h1>Consulta ao banco de dados</h1>
+    <p class="sub">Leitura direta das tabelas gravadas pela aplicação (chave <code>${DB_KEY}</code> do armazenamento local do navegador).</p>
+    <div class="abas">${Object.keys(tabelas).map((k) => `<a href="#banco/${k}" class="${k === atual ? 'ativo' : ''}">${k} <small>${tabelas[k].linhas.length}</small></a>`).join('')}</div>
+    <pre class="sql">SELECT * FROM ${atual};  -- ${t.linhas.length} registro(s)</pre>
+    ${t.linhas.length ? `<div class="tabela-rolagem"><table class="banco"><thead><tr>${t.cols.map((c) => `<th>${c}</th>`).join('')}</tr></thead><tbody>
+      ${t.linhas.map((l) => `<tr>${t.cols.map((c) => `<td>${cel(l[c])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>` : alerta('info', 'Tabela vazia.')}
+    <details class="bruto"><summary>Ver registro bruto (JSON)</summary><pre>${esc(JSON.stringify(atual === 'usuarios' ? db.usuarios.map(({ senha, ...r }) => r) : tabelas[atual].linhas, null, 2))}</pre></details>
+    <div class="acoes">
+      <button class="btn" id="exportar">EXPORTAR BANCO (JSON)</button>
+      ${u.perfil === 'Administrador' ? '<button class="btn perigo" id="restaurar">RESTAURAR DADOS INICIAIS</button>' : ''}
+    </div>`);
+  $('#exportar').onclick = () => {
+    const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'techservice-banco.json'; a.click();
+  };
+  const r = $('#restaurar');
+  if (r) r.onclick = () => {
+    if (!confirm('Apagar todas as ordens e voltar aos dados iniciais?')) return;
+    db = DB.restaurar(); avisar('ok', 'Banco restaurado para os dados iniciais'); rotear();
+  };
+}
+
+</script>
+</body>
+</html>
